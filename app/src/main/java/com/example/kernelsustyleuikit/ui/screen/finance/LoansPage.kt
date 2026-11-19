@@ -152,10 +152,6 @@ private fun LoanCard(loan: Loan, today: LocalDate, onClick: () -> Unit) {
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (!loan.reminderEnabled && !loan.settled) {
-                    StatusBadge("不提醒", colorScheme.onSurfaceVariantSummary)
-                    Spacer(Modifier.width(6.dp))
-                }
                 StatusBadge(status.label, statusColor)
             }
             if (loan.note.isNotBlank()) {
@@ -172,11 +168,13 @@ private fun LoanCard(loan: Loan, today: LocalDate, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(
-                    text = "已还 ${loan.paidCount}/${loan.installmentCount} 期",
-                    fontSize = 12.sp,
-                    color = colorScheme.onSurfaceVariantSummary,
-                )
+                if (loan.reminderEnabled) {
+                    Text(
+                        text = "已还 ${loan.paidCount}/${loan.installmentCount} 期",
+                        fontSize = 12.sp,
+                        color = colorScheme.onSurfaceVariantSummary,
+                    )
+                }
                 Text(
                     text = "进度 ${paidPercentLabel(loan)}",
                     fontSize = 12.sp,
@@ -188,12 +186,12 @@ private fun LoanCard(loan: Loan, today: LocalDate, onClick: () -> Unit) {
             Spacer(Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        if (loan.reminderEnabled) "本期应还" else "分期提醒",
-                        fontSize = 11.sp,
-                        color = colorScheme.onSurfaceVariantSummary,
-                    )
                     if (loan.reminderEnabled) {
+                        Text(
+                            "本期应还",
+                            fontSize = 11.sp,
+                            color = colorScheme.onSurfaceVariantSummary,
+                        )
                         Text(
                             text = if (loan.settled) "—" else Money.formatCentsExact(nextRemaining),
                             fontSize = 15.sp,
@@ -201,11 +199,12 @@ private fun LoanCard(loan: Loan, today: LocalDate, onClick: () -> Unit) {
                             color = colorScheme.onSurface,
                         )
                     } else {
+                        Text("已收", fontSize = 11.sp, color = colorScheme.onSurfaceVariantSummary)
                         Text(
-                            text = "已关闭",
-                            fontSize = 13.sp,
+                            text = Money.formatCentsExact(loan.paidCents),
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Medium,
-                            color = colorScheme.onSurfaceVariantSummary,
+                            color = IncomeGreen,
                         )
                     }
                 }
@@ -217,37 +216,45 @@ private fun LoanCard(loan: Loan, today: LocalDate, onClick: () -> Unit) {
                         color = colorScheme.onSurface,
                     )
                 }
-                Column(modifier = Modifier.weight(1.1f)) {
-                    Text("下次还款日", fontSize = 11.sp, color = colorScheme.onSurfaceVariantSummary)
-                    Text(
-                        text = when {
-                            loan.settled -> "已结清"
-                            !loan.reminderEnabled -> "不提醒"
-                            else -> next?.let { Money.formatDate(it.dueDate) } ?: "—"
-                        },
-                        fontSize = 15.sp,
-                        color = if (status == LoanStatus.OVERDUE) ExpenseRed else colorScheme.onSurface,
-                    )
+                if (loan.reminderEnabled) {
+                    Column(modifier = Modifier.weight(1.1f)) {
+                        Text("下次还款日", fontSize = 11.sp, color = colorScheme.onSurfaceVariantSummary)
+                        Text(
+                            text = when {
+                                loan.settled -> "已结清"
+                                else -> next?.let { Money.formatDate(it.dueDate) } ?: "—"
+                            },
+                            fontSize = 15.sp,
+                            color = if (status == LoanStatus.OVERDUE) ExpenseRed else colorScheme.onSurface,
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(8.dp))
-            val modeText = when {
-                loan.interestMode == InterestMode.RATE -> "年利率 ${Money.formatRate(loan.annualRate)}"
-                loan.fixedInterestScope == com.example.kernelsustyleuikit.finance.FixedInterestScope.PER_INSTALLMENT ->
-                    "固定每期利息 ${Money.formatCentsExact(loan.fixedInterestCents)}"
-                else -> "固定总利息 ${Money.formatCentsExact(loan.fixedInterestCents)}"
+            val detailParts = ArrayList<String>()
+            if (loan.interestEnabled) {
+                detailParts += when {
+                    loan.interestMode == InterestMode.RATE -> "年利率 ${Money.formatRate(loan.annualRate)}"
+                    loan.fixedInterestScope == com.example.kernelsustyleuikit.finance.FixedInterestScope.PER_INSTALLMENT ->
+                        "固定每期利息 ${Money.formatCentsExact(loan.fixedInterestCents)}"
+                    else -> "固定总利息 ${Money.formatCentsExact(loan.fixedInterestCents)}"
+                }
             }
-            Text(
-                text = "$modeText · " +
-                    (if (loan.intervalUnit == com.example.kernelsustyleuikit.finance.ScheduleUnit.MONTHS) {
-                        "每 1 个月（旧版）"
-                    } else {
-                        "每 ${loan.intervalDays} 天一期"
-                    }) +
-                    " · ${loan.method.label}",
-                fontSize = 11.sp,
-                color = colorScheme.onSurfaceVariantSummary,
-            )
+            if (loan.reminderEnabled) {
+                detailParts += if (loan.intervalUnit == com.example.kernelsustyleuikit.finance.ScheduleUnit.MONTHS) {
+                    "每 1 个月（旧版）"
+                } else {
+                    "每 ${loan.intervalDays} 天一期"
+                }
+                detailParts += loan.method.label
+            }
+            if (detailParts.isNotEmpty()) {
+                Text(
+                    text = detailParts.joinToString(" · "),
+                    fontSize = 11.sp,
+                    color = colorScheme.onSurfaceVariantSummary,
+                )
+            }
         }
     }
 }

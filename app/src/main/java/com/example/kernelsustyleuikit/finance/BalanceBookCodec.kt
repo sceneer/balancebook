@@ -116,6 +116,7 @@ object BalanceBookCodec {
         put("annualRate", l.annualRate)
         put("fixedInterestCents", l.fixedInterestCents)
         put("fixedInterestScope", l.fixedInterestScope.storageValue)
+        put("interestEnabled", l.interestEnabled)
         put("includeInBalance", l.includeInBalance)
         put("reminderEnabled", l.reminderEnabled)
         put("createdAt", l.createdAt)
@@ -297,6 +298,7 @@ object BalanceBookCodec {
             annualRate = annualRate,
             fixedInterestCents = o.long("fixedInterestCents", 0L).coerceAtLeast(0),
             fixedInterestScope = scope,
+            interestEnabled = o.bool("interestEnabled", true),
             includeInBalance = o.bool("includeInBalance", true),
             reminderEnabled = o.bool("reminderEnabled", true),
             payments = normalizedPayments,

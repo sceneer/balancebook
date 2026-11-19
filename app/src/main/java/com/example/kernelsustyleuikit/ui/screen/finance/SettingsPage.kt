@@ -233,14 +233,6 @@ fun SettingsPage(
                         }
                     },
                 )
-                SwitchPreference(
-                    title = "记账后提醒",
-                    summary = "自动记账成功时发一条静默通知，点击查看账单",
-                    checked = state.settings.autoBookNotify,
-                    onCheckedChange = { enabled ->
-                        BalanceBookRepository.updateSettings { it.copy(autoBookNotify = enabled) }
-                    },
-                )
                 val autoCount = state.transactions.count { it.source.isAuto }
                 if (autoCount > 0) {
                     InfoRow("已自动记账", "$autoCount 笔")

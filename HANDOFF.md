@@ -1,7 +1,7 @@
 # 交接说明（给下一个 AI 开发者）
 
 > 项目：**余额簿 BalanceBook** —— 基于 KernelSU-Style-UI-Kit 的离线记账 + 借款管理 Android App。
-> 当前版本：**1.6.0 (versionCode 156)**。本文件描述现状、构建方式、关键设计、已知坑与建议下一步。
+> 当前版本：**1.6.1 (versionCode 157)**。本文件描述现状、构建方式、关键设计、已知坑与建议下一步。
 
 ---
 
@@ -69,6 +69,9 @@ $env:JAVA_HOME="C:\tools\jdk-21.0.12.1+1"
 - 提醒：`loan_reminders` 高优先级渠道，每天 9:00 AlarmManager 检查 3 天内到期/逾期；
   BootReceiver 重排；同一借款同期一天最多一次；点击打开借款页。
 - 完全离线：APK 无 `INTERNET` 权限（依赖库自带权限用 `tools:node="remove"` 移除）。
+- 借款主开关（1.6.1）：新建/编辑借款时「计算利息」「分期提醒」为独立主开关；
+  关闭利息 = 无息借款（本金均摊），关闭分期提醒 = 隐藏还款间隔/期数/还款方式/还款计划，
+  详情与列表只保留本金、待收、进度等金额信息（JSON 新增 `loans[].interestEnabled`，默认 true）。
 - 通知自动记账（1.6.0，实验性）：设置页开启后跳系统「通知使用权」授权，
   监听微信 / 支付宝支付通知，解析金额与方向后自动生成账单（带来源标签）。
   纯本地解析、不联网；解析规则见 `finance/PayNotificationParser.kt`，有 27 个 JVM 单测。
@@ -176,7 +179,7 @@ app/src/main/java/com/example/kernelsustyleuikit/
 
 - 本仓库（含 git 历史，tag `v1.5.5`）。
 - 源码压缩包：`余额簿-源码-1.5.5.zip`（`git archive` 导出，不含 `.git`、`build/`、`local.properties`）。
-- 可安装 APK：`余额簿-1.6.0.apk`（release，debug 签名）。
+- 可安装 APK：`余额簿-1.6.1.apk`（release，debug 签名）。
 - 详细需求文档：仓库内 `README.md`；本文件 `HANDOFF.md`。
 
 接手时建议顺序：`README.md` → `HANDOFF.md` → `finance/LoanCalculator.kt` 与 `BalanceBookCodec.kt`

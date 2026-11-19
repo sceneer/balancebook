@@ -79,6 +79,7 @@ fun LoanEditPage(
     }
     var includeInBalance by rememberSaveable { mutableStateOf(initial?.includeInBalance ?: true) }
     var reminderEnabled by rememberSaveable { mutableStateOf(initial?.reminderEnabled ?: true) }
+    var interestEnabled by rememberSaveable { mutableStateOf(initial?.interestEnabled ?: false) }
     var error by remember { mutableStateOf<String?>(null) }
 
     val interestMode = InterestMode.entries[interestModeOrdinal]
@@ -89,16 +90,23 @@ fun LoanEditPage(
     val startDate = Money.parseDate(startText)
     val principalCents = Money.parseYuanToCents(principalText) ?: 0
     val fixedCents = Money.parseYuanToCents(fixedText) ?: 0
+    // 主开关：利息 / 分期提醒关闭时，使用无息、单期的简单条款。
+    val effectiveMethod = if (reminderEnabled) method else LoanMethod.EQUAL_PAYMENT
+    val effectiveUnit = if (reminderEnabled) unit else ScheduleUnit.DAYS
     val terms = LoanTerms(
         principalCents = principalCents,
-        installmentCount = countText.toIntOrNull() ?: 0,
-        intervalUnit = unit,
-        intervalDays = if (unit == ScheduleUnit.MONTHS) 30 else (daysText.toIntOrNull() ?: 0),
+        installmentCount = if (reminderEnabled) (countText.toIntOrNull() ?: 0) else 1,
+        intervalUnit = effectiveUnit,
+        intervalDays = if (reminderEnabled) {
+            if (unit == ScheduleUnit.MONTHS) 30 else (daysText.toIntOrNull() ?: 0)
+        } else {
+            30
+        },
         startDate = startDate ?: LocalDate.now(),
-        method = method,
-        interestMode = interestMode,
-        annualRate = rateText.toDoubleOrNull() ?: 0.0,
-        fixedInterestCents = fixedCents,
+        method = effectiveMethod,
+        interestMode = if (interestEnabled) interestMode else InterestMode.RATE,
+        annualRate = if (interestEnabled) (rateText.toDoubleOrNull() ?: 0.0) else 0.0,
+        fixedInterestCents = if (interestEnabled) fixedCents else 0,
         fixedInterestScope = scope,
     )
     val validation = LoanCalculator.validate(terms)
@@ -167,6 +175,25 @@ fun LoanEditPage(
             }
         }
 
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                SwitchPreference(
+                    title = "计算利息",
+                    summary = "开启后填写计息方式；关闭按无息借款处理",
+                    checked = interestEnabled,
+                    enabled = !locked,
+                    onCheckedChange = { interestEnabled = it },
+                )
+                SwitchPreference(
+                    title = "分期提醒",
+                    summary = "开启后设置还款间隔与期数并生成还款计划；关闭只跟踪总待收",
+                    checked = reminderEnabled,
+                    onCheckedChange = { reminderEnabled = it },
+                )
+            }
+        }
+
+        if (interestEnabled) {
         item {
             SectionCard(title = "利息方式") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -249,7 +276,9 @@ fun LoanEditPage(
                 }
             }
         }
+        }
 
+        if (reminderEnabled) {
         item {
             SectionCard(title = "还款间隔") {
                 if (unit == ScheduleUnit.MONTHS) {
@@ -334,6 +363,7 @@ fun LoanEditPage(
                 }
             }
         }
+        }
 
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -342,12 +372,6 @@ fun LoanEditPage(
                     summary = "借出本金会从总余额中扣除，收到还款后回补",
                     checked = includeInBalance,
                     onCheckedChange = { includeInBalance = it },
-                )
-                SwitchPreference(
-                    title = "按分期提醒",
-                    summary = "分期计划只用于到期提醒；实际还款可随时按任意金额记录",
-                    checked = reminderEnabled,
-                    onCheckedChange = { reminderEnabled = it },
                 )
             }
         }
@@ -363,6 +387,7 @@ fun LoanEditPage(
             }
         }
 
+        if (reminderEnabled) {
         item {
             SectionCard(title = "实时预览") {
                 if (preview == null) {
@@ -392,6 +417,8 @@ fun LoanEditPage(
                     }
                 }
             }
+        }
+
         }
 
         if (error != null) {
@@ -434,14 +461,15 @@ fun LoanEditPage(
                                         note = note.trim(),
                                         principalCents = principalCents,
                                         installmentCount = terms.installmentCount,
-                                        intervalUnit = unit,
+                                        intervalUnit = effectiveUnit,
                                         intervalDays = terms.intervalDays,
                                         startDate = start,
-                                        method = method,
-                                        interestMode = interestMode,
+                                        method = terms.method,
+                                        interestMode = terms.interestMode,
                                         annualRate = terms.annualRate,
                                         fixedInterestCents = terms.fixedInterestCents,
                                         fixedInterestScope = scope,
+                                        interestEnabled = interestEnabled,
                                         includeInBalance = includeInBalance,
                                         reminderEnabled = reminderEnabled,
                                         payments = payments,

@@ -115,10 +115,6 @@ fun LoanDetailPage(
                             color = colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
-                        if (!loan.reminderEnabled && !loan.settled) {
-                            StatusBadge("不提醒", colorScheme.onSurfaceVariantSummary)
-                            Spacer(Modifier.size(6.dp))
-                        }
                         StatusBadge(status.label, statusColor)
                     }
                     if (loan.note.isNotBlank()) {
@@ -143,11 +139,13 @@ fun LoanDetailPage(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(
-                            "已还 ${loan.paidCount}/${loan.installmentCount} 期",
-                            fontSize = 12.sp,
-                            color = colorScheme.onSurfaceVariantSummary,
-                        )
+                        if (loan.reminderEnabled) {
+                            Text(
+                                "已还 ${loan.paidCount}/${loan.installmentCount} 期",
+                                fontSize = 12.sp,
+                                color = colorScheme.onSurfaceVariantSummary,
+                            )
+                        }
                         Text(
                             "进度 ${paidPercentLabel(loan)}",
                             fontSize = 12.sp,
@@ -176,8 +174,6 @@ fun LoanDetailPage(
                         Money.formatCentsExact(nextRemaining),
                         colorScheme.primary,
                     )
-                } else {
-                    InfoRow("下次还款日", "分期提醒已关闭")
                 }
             }
         }
@@ -185,24 +181,27 @@ fun LoanDetailPage(
         item {
             SectionCard(title = "借款信息") {
                 InfoRow("本金", Money.formatCentsExact(loan.principalCents))
-                InfoRow(
-                    "利息方式",
-                    when {
-                        loan.interestMode == InterestMode.RATE -> "按年利率 ${Money.formatRate(loan.annualRate)}"
-                        loan.fixedInterestScope == FixedInterestScope.PER_INSTALLMENT ->
-                            "固定每期利息 ${Money.formatCentsExact(loan.fixedInterestCents)}"
-                        else -> "固定总利息 ${Money.formatCentsExact(loan.fixedInterestCents)}"
-                    },
-                )
-                InfoRow("总利息", Money.formatCentsExact(loan.totalInterestCents))
-                InfoRow("还款方式", loan.method.label)
+                if (loan.interestEnabled) {
+                    InfoRow(
+                        "利息方式",
+                        when {
+                            loan.interestMode == InterestMode.RATE -> "按年利率 ${Money.formatRate(loan.annualRate)}"
+                            loan.fixedInterestScope == FixedInterestScope.PER_INSTALLMENT ->
+                                "固定每期利息 ${Money.formatCentsExact(loan.fixedInterestCents)}"
+                            else -> "固定总利息 ${Money.formatCentsExact(loan.fixedInterestCents)}"
+                        },
+                    )
+                    InfoRow("总利息", Money.formatCentsExact(loan.totalInterestCents))
+                }
+                if (loan.reminderEnabled) {
+                    InfoRow("还款方式", loan.method.label)
+                    InfoRow(
+                        "还款间隔",
+                        if (loan.intervalUnit == ScheduleUnit.MONTHS) "每 1 个月（旧版）" else "每 ${loan.intervalDays} 天",
+                    )
+                    InfoRow("期数", "${loan.installmentCount} 期")
+                }
                 InfoRow("起借日", Money.formatDate(loan.startDate))
-                InfoRow(
-                    "还款间隔",
-                    if (loan.intervalUnit == ScheduleUnit.MONTHS) "每 1 个月（旧版）" else "每 ${loan.intervalDays} 天",
-                )
-                InfoRow("期数", "${loan.installmentCount} 期")
-                InfoRow("分期提醒", if (loan.reminderEnabled) "开启" else "已关闭（仅按总待收）")
                 InfoRow("计入总余额", if (loan.includeInBalance) "是" else "否")
             }
         }
@@ -285,16 +284,9 @@ fun LoanDetailPage(
             }
         }
 
+        if (loan.reminderEnabled) {
         item {
-            SectionCard(title = if (loan.reminderEnabled) "还款计划（提醒参考）" else "还款计划（仅参考，不提醒）") {
-                if (!loan.reminderEnabled) {
-                    Text(
-                        text = "分期计划只用于计算总应收和展示，不产生到期/逾期提醒；实际还款按下方记录自由输入。",
-                        fontSize = 12.sp,
-                        color = colorScheme.onSurfaceVariantSummary,
-                        modifier = Modifier.padding(bottom = 6.dp),
-                    )
-                }
+            SectionCard(title = "还款计划（提醒参考）") {
                 var cumulative = 0L
                 schedule.forEach { installment ->
                     cumulative += installment.dueCents
@@ -307,6 +299,7 @@ fun LoanDetailPage(
                     ScheduleRow(installment, installmentState)
                 }
             }
+        }
         }
     }
 

@@ -117,6 +117,8 @@ data class Loan(
     val annualRate: Double = 0.0,
     val fixedInterestCents: Long = 0,
     val fixedInterestScope: FixedInterestScope = FixedInterestScope.TOTAL,
+    /** 是否计算利息；关闭后按无息借款处理（利息为 0，本金均摊）。 */
+    val interestEnabled: Boolean = true,
     val includeInBalance: Boolean = true,
     /** 是否用分期计划做到期提醒；关闭后只按总待收跟踪，不产生逾期/到期提醒。 */
     val reminderEnabled: Boolean = true,
@@ -130,10 +132,11 @@ data class Loan(
             intervalUnit = intervalUnit,
             intervalDays = intervalDays,
             startDate = startDate,
-            method = method,
-            interestMode = interestMode,
-            annualRate = annualRate,
-            fixedInterestCents = fixedInterestCents,
+            // 未开启利息时按无息等额本金处理，避免出现「先息后本 0 利息」的怪异计划。
+            method = if (interestEnabled) method else LoanMethod.EQUAL_PAYMENT,
+            interestMode = if (interestEnabled) interestMode else InterestMode.RATE,
+            annualRate = if (interestEnabled) annualRate else 0.0,
+            fixedInterestCents = if (interestEnabled) fixedInterestCents else 0,
             fixedInterestScope = fixedInterestScope,
         )
 

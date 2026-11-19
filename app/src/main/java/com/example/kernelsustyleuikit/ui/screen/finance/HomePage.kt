@@ -82,7 +82,7 @@ fun HomePage(
         extraBottomPadding = bottomInnerPadding + 16.dp,
     ) {
         item {
-            BalanceHeroCard(balance, monthBalance, summary.totalOutstandingCents, onOpenLimits)
+            BalanceHeroCard(balance, monthBalance, summary.totalOutstandingCents)
         }
 
         item {
@@ -288,9 +288,8 @@ private fun BalanceHeroCard(
     balance: Long,
     monthBalance: Long,
     outstanding: Long,
-    onOpenLimits: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth(), onClick = onOpenLimits) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(18.dp)) {
             Text(text = "总余额", fontSize = 13.sp, color = colorScheme.onSurfaceVariantSummary)
             Text(
@@ -312,25 +311,6 @@ private fun BalanceHeroCard(
                     value = Money.formatCentsExact(outstanding),
                     color = colorScheme.primary,
                     modifier = Modifier.weight(1f),
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "初始余额 / 每月额度",
-                    fontSize = 12.sp,
-                    color = colorScheme.onSurfaceVariantSummary,
-                )
-                Icon(
-                    Icons.Rounded.ArrowForward,
-                    contentDescription = null,
-                    tint = colorScheme.onSurfaceVariantSummary,
-                    modifier = Modifier.size(16.dp),
                 )
             }
         }
