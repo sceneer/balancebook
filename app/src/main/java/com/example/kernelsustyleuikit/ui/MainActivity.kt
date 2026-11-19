@@ -45,6 +45,7 @@ import com.example.kernelsustyleuikit.ui.navigation3.rememberNavigator
 import com.example.kernelsustyleuikit.ui.screen.colorpalette.ColorPaletteScreen
 import com.example.kernelsustyleuikit.ui.screen.finance.BillsPage
 import com.example.kernelsustyleuikit.ui.screen.finance.HomePage
+import com.example.kernelsustyleuikit.ui.screen.finance.LimitsPage
 import com.example.kernelsustyleuikit.ui.screen.finance.LoanDetailPage
 import com.example.kernelsustyleuikit.ui.screen.finance.LoanEditPage
 import com.example.kernelsustyleuikit.ui.screen.finance.LoansPage
@@ -75,9 +76,11 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_OPEN_LOANS = "open_loans"
+        const val EXTRA_OPEN_BILLS = "open_bills"
     }
 
     private val openLoansTick = mutableIntStateOf(0)
+    private val openBillsTick = mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,8 +89,14 @@ class MainActivity : ComponentActivity() {
         if (intent?.getBooleanExtra(EXTRA_OPEN_LOANS, false) == true) {
             openLoansTick.intValue += 1
         }
+        if (intent?.getBooleanExtra(EXTRA_OPEN_BILLS, false) == true) {
+            openBillsTick.intValue += 1
+        }
         setContent {
-            BalanceBookApp(openLoansTick = openLoansTick.intValue)
+            BalanceBookApp(
+                openLoansTick = openLoansTick.intValue,
+                openBillsTick = openBillsTick.intValue,
+            )
         }
     }
 
@@ -96,6 +105,9 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         if (intent.getBooleanExtra(EXTRA_OPEN_LOANS, false)) {
             openLoansTick.intValue += 1
+        }
+        if (intent.getBooleanExtra(EXTRA_OPEN_BILLS, false)) {
+            openBillsTick.intValue += 1
         }
     }
 }
@@ -153,7 +165,7 @@ private fun rememberUiPrefs(): UiPrefs {
 }
 
 @Composable
-fun BalanceBookApp(openLoansTick: Int) {
+fun BalanceBookApp(openLoansTick: Int, openBillsTick: Int) {
     val context = LocalContext.current
     val state by BalanceBookRepository.state.collectAsStateWithLifecycle()
     val message by BalanceBookRepository.message.collectAsStateWithLifecycle()
@@ -207,7 +219,11 @@ fun BalanceBookApp(openLoansTick: Int) {
                         onBack = { navigator.pop() },
                     ) {
                         entry<Route.Main>(swipeDismiss = swipeDismiss) {
-                            MainScreen(state = state, openLoansTick = openLoansTick)
+                            MainScreen(
+                                state = state,
+                                openLoansTick = openLoansTick,
+                                openBillsTick = openBillsTick,
+                            )
                         }
                         entry<Route.AddTransaction>(swipeDismiss = swipeDismiss) { key ->
                             TransactionEditPage(transactionId = key.id, onBack = { navigator.pop() })
@@ -224,6 +240,9 @@ fun BalanceBookApp(openLoansTick: Int) {
                         }
                         entry<Route.ColorPalette>(swipeDismiss = swipeDismiss) {
                             ColorPaletteScreen()
+                        }
+                        entry<Route.Limits>(swipeDismiss = swipeDismiss) {
+                            LimitsPage(state = state, onBack = { navigator.pop() })
                         }
                     }
                 }
@@ -245,6 +264,7 @@ val LocalMainPagerState = staticCompositionLocalOf<MainPagerState> { error("Loca
 fun MainScreen(
     state: FinanceState,
     openLoansTick: Int,
+    openBillsTick: Int = 0,
 ) {
     val navigator = LocalNavigator.current
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
@@ -254,6 +274,13 @@ fun MainScreen(
     LaunchedEffect(openLoansTick) {
         if (openLoansTick > 0) {
             mainPagerState.animateToPage(2)
+        }
+    }
+
+    // 自动记账通知点击后直接落到「账单」页。
+    LaunchedEffect(openBillsTick) {
+        if (openBillsTick > 0) {
+            mainPagerState.animateToPage(1)
         }
     }
 
@@ -325,7 +352,7 @@ fun MainScreen(
                             onOpenLoans = { mainPagerState.animateToPage(2) },
                             onAddTransaction = { navigator.push(Route.AddTransaction()) },
                             onAddLoan = { navigator.push(Route.AddLoan()) },
-                            onEditBudget = { mainPagerState.animateToPage(3) },
+                            onOpenLimits = { navigator.push(Route.Limits) },
                             onOpenLoanDetail = { navigator.push(Route.LoanDetail(it)) },
                         )
 

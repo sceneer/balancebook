@@ -296,6 +296,40 @@ class BalanceBookCodecTest {
         assertEquals(365, loan.intervalDays)
         assertEquals(100.0, loan.annualRate, 0.0)
     }
+
+    @Test
+    fun roundTripsAutoBookkeepingMetadata() {
+        val transaction = Transaction(
+            id = "auto-wechat-1",
+            type = TransactionType.EXPENSE,
+            amountCents = 3200,
+            category = "food",
+            note = "微信支付 · 星巴克",
+            date = LocalDate.of(2026, 11, 19),
+            createdAt = 1795000000000,
+            source = TransactionSource.WECHAT,
+            autoKey = "wechat|EXPENSE|3200|5976",
+        )
+        val state = FinanceState(
+            settings = AppSettings(autoBookkeeping = true, autoBookNotify = false),
+            transactions = listOf(transaction),
+        )
+        val restored = (BalanceBookCodec.decode(BalanceBookCodec.encode(state)) as DecodeResult.Success).state
+        val tx = restored.transactions.single()
+        assertEquals(TransactionSource.WECHAT, tx.source)
+        assertEquals("wechat|EXPENSE|3200|5976", tx.autoKey)
+        assertTrue(restored.settings.autoBookkeeping)
+        assertEquals(false, restored.settings.autoBookNotify)
+    }
+
+    @Test
+    fun legacyJsonWithoutAutoBookkeepingFieldsUsesDefaults() {
+        val state = (BalanceBookCodec.decode(v1Json) as DecodeResult.Success).state
+        assertEquals(TransactionSource.MANUAL, state.transactions.single().source)
+        assertEquals("", state.transactions.single().autoKey)
+        assertEquals(false, state.settings.autoBookkeeping)
+        assertEquals(true, state.settings.autoBookNotify)
+    }
 }
 
 

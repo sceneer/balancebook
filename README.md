@@ -6,10 +6,12 @@ Scaffold、TopAppBar、NavigationBar、Card、Dialog、TextField、Switch、Slid
 没有复刻旧 App 的自定义 View / BottomNav / GradientCard。
 
 - 包名：`com.example.kernelsustyleuikit`
-- 版本：1.5.5 (155)
+- 版本：1.6.0 (156)
 - `targetSdk = 36`，`minSdk = 31`，`compileSdk = 37`（Miuix 0.9.4 AAR 要求，targetSdk 仍为 36）
 - 完全离线：APK 中**没有 INTERNET 权限**（依赖库自带的 INTERNET 已用 `tools:node="remove"` 移除），
   无登录、无服务器、无云同步。
+- 通知自动记账：可选开启系统「通知使用权」读取微信 / 支付宝支付通知自动生成账单，
+  通知文本只在本机解析，不上传（详见下文「通知自动记账」）。
 
 ## 本次借款功能重点
 
@@ -31,8 +33,10 @@ app/src/main/java/com/example/kernelsustyleuikit/
 │   ├── Models.kt                  # Transaction / Loan / LoanPayment / AppSettings / FinanceState
 │   ├── LoanCalculator.kt          # 还款计划、进度、状态、校验 + FinanceCalculator 余额/预算
 │   ├── Money.kt                   # 元↔分、金额/日期/利率格式化
+│   ├── PayNotificationParser.kt   # 微信/支付宝支付通知解析（纯 Kotlin，可 JVM 单测）
 │   └── BalanceBookCodec.kt        # version 1/2 JSON 编解码与迁移
 ├── data/BalanceBookRepository.kt  # 单例仓库：StateFlow + 原子写入 + 导入导出 + 示例数据
+├── notify/                        # 通知使用权服务、授权检测、自动记账入库
 ├── reminder/                      # AlarmManager 每日 9:00、通知渠道、开机重排
 └── ui/
     ├── MainActivity.kt            # 四页 Pager + miuix NavDisplay 路由
@@ -71,9 +75,43 @@ app/src/main/java/com/example/kernelsustyleuikit/
 - 同一借款同一期一天最多通知一次；点击通知打开借款页。
 - 关闭提醒开关会取消闹钟。
 
+## 通知自动记账（微信 / 支付宝，1.6.0）
+
+在「设置」页开启「自动记账（微信 / 支付宝）」，并按提示授予系统「通知使用权」后，
+App 会监听微信（`com.tencent.mm`）与支付宝（`com.eg.android.AlipayGphone`）的支付通知，
+识别金额与收支方向后自动生成账单，账单行会标注来源「微信 / 支付宝」。
+
+- **授权方式**：通知使用权不能弹窗申请，只能跳转系统设置手动开启；
+  设置页有「通知使用权」入口，状态实时刷新（返回 App 后自动更新）。
+- **解析规则**（`finance/PayNotificationParser.kt`，纯 Kotlin + 27 个 JVM 单测）：
+  - 金额支持 `¥12.00` / `￥12.00` / `12.00元` / `1,234.56 元`；0 元与无金额不记。
+  - 方向按「最后出现的动作词」判定：收款/到账/退款/收到/转入 → 收入；
+    支付/付款/消费/扣款/转出 → 支出；两者都无则不记。
+  - 微信仅处理带「微信支付 / 微信收款 / 微信转账 / [转账] + 已收款」等标记的通知，
+    普通聊天、群消息、营销文案、待支付/支付失败、验证码、账单提醒一律忽略。
+  - 商户尽力提取（「向 XX 付款」「在 XX 消费」「收款方：XX」等），提取不到则用
+    「微信自动记账 / 支付宝自动记账」作为备注。
+  - 分类按关键字建议：餐饮 / 交通 / 购物 / 居家 / 娱乐 / 医疗 / 教育 / 其他；
+    收入按工资 / 奖金 / 理财收益 / 其他收入。
+- **去重**：同一来源 + 方向 + 金额 + 3 分钟窗口生成稳定 `dedupeKey`，
+  交易 id = `auto-<来源>-<sha1(dedupeKey)>`；微信服务号与聊天两条重复通知只会记一笔。
+- **记账后提醒**：可关闭；开启时自动记账成功会发一条静默通知，点击直接跳到「账单」页。
+- **隐私**：只读取通知的标题与正文，不读取聊天内容、不联网；数据仍只写入本机 JSON。
+- JSON 新增字段（向后兼容，仍为 version 2）：
+  `transactions[].source`（manual / wechat / alipay）、`transactions[].autoKey`、
+  `settings.autoBookkeeping`、`settings.autoBookNotify`；旧备份缺字段按手动账单处理。
+
+### 1.6.0 设置页精简
+
+- 设置页删掉「通知权限」「通知使用权」两个点击项：打开「借款到期提醒 / 自动记账」开关时，
+  自动申请通知权限或跳转系统「通知使用权」页。
+- 设置页删掉「额度与余额」；初始余额和每月可用额度移到首页「总余额」卡片和「额度」按钮，
+  点击进入独立的「额度与余额」页（显示当前余额、月度预算、初始余额）。
+- 设置页保留提醒、自动记账、数据导入导出与外观入口，点击项更少。
+
 ## 单元测试
 
-`app/src/test/java/com/example/kernelsustyleuikit/finance/`，共 **86** 个 JVM 测试：
+`app/src/test/java/com/example/kernelsustyleuikit/`，共 **115** 个 JVM 测试：
 
 - `LoanCalculatorTest`：8.1–8.2 全部用例（首期/末期/总应收/总利息/到期日）、
   legacy MONTHS、零利率、末期限差、非法组合、边界校验、周期利率。
@@ -82,6 +120,9 @@ app/src/main/java/com/example/kernelsustyleuikit/
   缺字段容错、非法组合归一化、越界值收敛。
 - `FinanceCalculatorTest`：8.4 预算/超支/跨月、未来借款不扣余额、已收还款回补、汇总、近 6 月。
 - `MoneyTest`：元↔分、非法输入、格式化、利率、日期。
+- `PayNotificationParserTest`（27 个）：微信/支付宝支付与收款、转账、退款、千分位金额、
+  营销/待支付/聊天/失败通知忽略、分类映射、去重键与稳定交易 id、bigText/textLines 解析。
+- `BalanceBookCodecTest`：新增自动记账字段往返与旧备份默认值（manual / 关闭自动记账）。
 
 运行：
 

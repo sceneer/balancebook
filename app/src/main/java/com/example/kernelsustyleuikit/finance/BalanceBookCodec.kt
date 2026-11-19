@@ -86,6 +86,8 @@ object BalanceBookCodec {
         put("liquidGlass", s.liquidGlass)
         put("navBadges", s.navBadges)
         put("predictiveBack", s.predictiveBack)
+        put("autoBookkeeping", s.autoBookkeeping)
+        put("autoBookNotify", s.autoBookNotify)
     }
 
     private fun encodeTransaction(t: Transaction): JsonObject = buildJsonObject {
@@ -96,6 +98,8 @@ object BalanceBookCodec {
         put("note", t.note)
         put("date", t.date.toString())
         put("createdAt", t.createdAt)
+        put("source", t.source.storageValue)
+        put("autoKey", t.autoKey)
     }
 
     private fun encodeLoan(l: Loan): JsonObject = buildJsonObject {
@@ -188,6 +192,8 @@ object BalanceBookCodec {
             liquidGlass = o.bool("liquidGlass", defaults.liquidGlass),
             navBadges = o.bool("navBadges", defaults.navBadges),
             predictiveBack = o.bool("predictiveBack", defaults.predictiveBack),
+            autoBookkeeping = o.bool("autoBookkeeping", defaults.autoBookkeeping),
+            autoBookNotify = o.bool("autoBookNotify", defaults.autoBookNotify),
         )
     }
 
@@ -205,6 +211,8 @@ object BalanceBookCodec {
             note = o.string("note", "") ?: "",
             date = date,
             createdAt = o.long("createdAt", System.currentTimeMillis()),
+            source = TransactionSource.fromStorage(o.string("source", null)),
+            autoKey = o.string("autoKey", "") ?: "",
         )
     }
 

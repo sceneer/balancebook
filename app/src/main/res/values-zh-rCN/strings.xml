@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="auto_book_service_label">自动记账</string>
     <string name="home_sample_notification">这是一条示例通知</string>
     <string name="home_device_model">设备型号</string>
     <string name="home_android_version">Android 版本</string>

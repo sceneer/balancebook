@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kernelsustyleuikit.data.BalanceBookRepository
 import com.example.kernelsustyleuikit.finance.Money
 import com.example.kernelsustyleuikit.finance.Transaction
+import com.example.kernelsustyleuikit.finance.TransactionSource
 import com.example.kernelsustyleuikit.finance.TransactionType
 import com.example.kernelsustyleuikit.ui.component.dialog.rememberConfirmDialog
 import top.yukonga.miuix.kmp.basic.Card
@@ -215,6 +216,8 @@ fun TransactionEditPage(
                                     note = note.trim(),
                                     date = date,
                                     createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+                                    source = existing?.source ?: TransactionSource.MANUAL,
+                                    autoKey = existing?.autoKey ?: "",
                                 )
                                 BalanceBookRepository.upsertTransaction(saved)
                                 onBack()

@@ -13,6 +13,20 @@ enum class TransactionType(val storageValue: Int) {
     }
 }
 
+/** 账单来源：手动录入 / 微信支付通知自动记账 / 支付宝通知自动记账。 */
+enum class TransactionSource(val storageValue: String, val label: String) {
+    MANUAL("manual", "手动"),
+    WECHAT("wechat", "微信"),
+    ALIPAY("alipay", "支付宝");
+
+    val isAuto: Boolean get() = this != MANUAL
+
+    companion object {
+        fun fromStorage(value: String?): TransactionSource =
+            entries.firstOrNull { it.storageValue == value } ?: MANUAL
+    }
+}
+
 /** 还款方式。 */
 enum class LoanMethod(val storageValue: Int, val label: String) {
     INTEREST_FIRST(0, "先息后本"),
@@ -72,6 +86,10 @@ data class Transaction(
     val note: String = "",
     val date: LocalDate = LocalDate.now(),
     val createdAt: Long = System.currentTimeMillis(),
+    /** 账单来源；自动记账生成的账单带微信 / 支付宝标签。 */
+    val source: TransactionSource = TransactionSource.MANUAL,
+    /** 自动记账去重键；同一笔支付的不同通知保持相同，手动账单为空。 */
+    val autoKey: String = "",
 )
 
 data class LoanPayment(
@@ -199,6 +217,10 @@ data class AppSettings(
     val liquidGlass: Boolean = true,
     val navBadges: Boolean = true,
     val predictiveBack: Boolean = true,
+    /** 自动记账：监听微信 / 支付宝支付通知并生成账单（默认关闭）。 */
+    val autoBookkeeping: Boolean = false,
+    /** 自动记账后发一条静默通知确认。 */
+    val autoBookNotify: Boolean = true,
 )
 
 data class FinanceState(

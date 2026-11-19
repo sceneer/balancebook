@@ -1,7 +1,7 @@
 # 交接说明（给下一个 AI 开发者）
 
 > 项目：**余额簿 BalanceBook** —— 基于 KernelSU-Style-UI-Kit 的离线记账 + 借款管理 Android App。
-> 当前版本：**1.5.5 (versionCode 155)**。本文件描述现状、构建方式、关键设计、已知坑与建议下一步。
+> 当前版本：**1.6.0 (versionCode 156)**。本文件描述现状、构建方式、关键设计、已知坑与建议下一步。
 
 ---
 
@@ -63,10 +63,15 @@ $env:JAVA_HOME="C:\tools\jdk-21.0.12.1+1"
   - **自由还款**：详情页「记一笔还款」可输入任意金额/日期/备注；支持部分还款、跨多期、多还、提前还。
   - 还款记录可逐笔删除；支持撤销最后一笔、清空收款记录重算、删除借款。
   - 已收款后锁定本金/利息/期数/间隔/起借日/还款方式，只可改好友、备注、是否计入余额、提醒开关。
-- 设置：额度、初始余额、借款提醒总开关、通知权限、导入/导出 JSON、示例数据、清空记录、主题页。
+- 设置：借款提醒总开关、自动记账（微信/支付宝通知）、导入/导出 JSON、示例数据、清空记录、主题页。
+- 额度与余额：初始余额和每月预算移到首页「总余额」卡片 / 「额度」按钮进入的独立页面，
+  设置页不再直接显示这两项；权限类点击项已删除，开开关时自动申请或跳转授权。
 - 提醒：`loan_reminders` 高优先级渠道，每天 9:00 AlarmManager 检查 3 天内到期/逾期；
   BootReceiver 重排；同一借款同期一天最多一次；点击打开借款页。
 - 完全离线：APK 无 `INTERNET` 权限（依赖库自带权限用 `tools:node="remove"` 移除）。
+- 通知自动记账（1.6.0，实验性）：设置页开启后跳系统「通知使用权」授权，
+  监听微信 / 支付宝支付通知，解析金额与方向后自动生成账单（带来源标签）。
+  纯本地解析、不联网；解析规则见 `finance/PayNotificationParser.kt`，有 27 个 JVM 单测。
 
 ---
 
@@ -78,8 +83,10 @@ app/src/main/java/com/example/kernelsustyleuikit/
 │   ├── Models.kt                  # Transaction / Loan / LoanPayment / AppSettings / FinanceState
 │   ├── LoanCalculator.kt          # 还款计划、覆盖期数、下一期剩余、状态、校验 + FinanceCalculator
 │   ├── Money.kt                   # 元↔分、格式化、日期
+│   ├── PayNotificationParser.kt   # 微信/支付宝支付通知解析（纯 Kotlin）
 │   └── BalanceBookCodec.kt        # version 1/2 JSON 编解码与迁移
 ├── data/BalanceBookRepository.kt  # 单例 StateFlow 仓库，原子写入 / 导入导出 / 示例数据
+├── notify/                        # 通知使用权服务、授权检测、自动记账入库
 ├── reminder/                      # AlarmManager、通知渠道、Boot 重排
 └── ui/
     ├── MainActivity.kt            # 四页 Pager + miuix NavDisplay + 主题/开关接线
@@ -127,7 +134,9 @@ app/src/main/java/com/example/kernelsustyleuikit/
 
 ## 4. 测试
 
-- JVM 单测 86 个：`app/src/test/java/com/example/kernelsustyleuikit/finance/`
+- JVM 单测 115 个：`app/src/test/java/com/example/kernelsustyleuikit/`
+  - `PayNotificationParserTest`（27 个）：微信/支付宝支付、收款、转账、退款、千分位金额、
+    营销/待支付/聊天/失败通知忽略、分类映射、去重键与稳定交易 id、bigText/textLines。
   - `LoanCalculatorTest`：8.1–8.2 全部验收数字、legacy MONTHS、零利率、末期限差、非法组合、边界。
   - `LoanProgressTest`：进度/撤销、状态流转、部分还款、多还结清、关闭提醒不判逾期、末期含本金。
   - `BalanceBookCodecTest`：v1 迁移、v2 往返、导出→清空→导入、损坏 JSON、缺字段、自由还款多笔。
@@ -141,6 +150,15 @@ app/src/main/java/com/example/kernelsustyleuikit/
 
 ## 5. 已知限制 / 建议下一步
 
+0. **自动记账是启发式解析（1.6.0 新增，实验性）**：
+   - 需要用户手动在系统设置里授予「通知使用权」；App 内不能弹窗申请。
+   - 微信 / 支付宝不同版本的通知文案可能变化；当前规则覆盖
+     「微信支付 / 微信收款助手 / [转账] 已收款 / 支付宝成功付款 / 收款到账 / 退款到账」等常见格式。
+     识别不到时可先看「设置 → 自动记账」卡片以及 `adb logcat -s PayNotificationListener`。
+   - 去重窗口为「来源 + 方向 + 金额 + 3 分钟」，3 分钟内两笔同金额支付可能只记一笔。
+   - 群通知摘要、常驻通知、被系统折叠的通知会被跳过；关闭通知权限会导致漏记。
+   - debug 构建可用 `adb shell cmd notification post -t "微信支付" -S bigtext "向 星巴克 付款成功 ¥32.00" test`
+     自测全链路（release 构建该分支不生效）。
 1. **R8 未开启**（`app/build.gradle.kts` 中 release `isMinifyEnabled = false`）。
    若要开启，请先补 `kotlinx.serialization` / `miuix-nav` / Compose 的 keep 规则并回归测试。
 2. 主题页的「界面缩放」（`page_scale`）当前只写 pref，`MainActivity` 没有像原模板那样
@@ -158,7 +176,7 @@ app/src/main/java/com/example/kernelsustyleuikit/
 
 - 本仓库（含 git 历史，tag `v1.5.5`）。
 - 源码压缩包：`余额簿-源码-1.5.5.zip`（`git archive` 导出，不含 `.git`、`build/`、`local.properties`）。
-- 可安装 APK：`余额簿-1.5.5.apk`（release，debug 签名）。
+- 可安装 APK：`余额簿-1.6.0.apk`（release，debug 签名）。
 - 详细需求文档：仓库内 `README.md`；本文件 `HANDOFF.md`。
 
 接手时建议顺序：`README.md` → `HANDOFF.md` → `finance/LoanCalculator.kt` 与 `BalanceBookCodec.kt`

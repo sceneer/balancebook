@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Palette
@@ -36,6 +37,7 @@ import com.example.kernelsustyleuikit.data.BalanceBookRepository
 import com.example.kernelsustyleuikit.finance.DecodeResult
 import com.example.kernelsustyleuikit.finance.FinanceState
 import com.example.kernelsustyleuikit.finance.Money
+import com.example.kernelsustyleuikit.notify.NotificationAccess
 import com.example.kernelsustyleuikit.reminder.LoanReminder
 import com.example.kernelsustyleuikit.ui.component.dialog.rememberConfirmDialog
 import kotlinx.coroutines.Dispatchers
@@ -57,13 +59,13 @@ fun SettingsPage(
 ) {
     val context = LocalContext.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
-    var showBudgetDialog by remember { mutableStateOf(false) }
-    var showOpeningDialog by remember { mutableStateOf(false) }
     var pendingImport by remember { mutableStateOf<String?>(null) }
     var permissionGranted by remember { mutableStateOf(LoanReminder.canPostNotifications(context)) }
+    var notificationAccessGranted by remember { mutableStateOf(NotificationAccess.isGranted(context)) }
 
     LifecycleResumeEffect(Unit) {
         permissionGranted = LoanReminder.canPostNotifications(context)
+        notificationAccessGranted = NotificationAccess.isGranted(context)
         onPauseOrDispose { }
     }
 
@@ -163,25 +165,6 @@ fun SettingsPage(
         extraBottomPadding = bottomInnerPadding + 16.dp,
     ) {
         item {
-            SectionCard(title = "额度与余额") {
-                ArrowPreference(
-                    title = "每月可用额度",
-                    summary = if (state.settings.monthlyBudgetCents > 0) {
-                        Money.formatCentsExact(state.settings.monthlyBudgetCents)
-                    } else {
-                        "未设置"
-                    },
-                    onClick = { showBudgetDialog = true },
-                )
-                ArrowPreference(
-                    title = "初始余额",
-                    summary = Money.formatCentsExact(state.settings.openingBalanceCents),
-                    onClick = { showOpeningDialog = true },
-                )
-            }
-        }
-
-        item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 SwitchPreference(
                     title = "借款到期提醒",
@@ -199,6 +182,11 @@ fun SettingsPage(
                     },
                     onCheckedChange = { enabled ->
                         BalanceBookRepository.updateSettings { it.copy(loanReminders = enabled) }
+                        Toast.makeText(
+                            context,
+                            if (enabled) "已开启借款到期提醒" else "已关闭借款到期提醒",
+                            Toast.LENGTH_SHORT,
+                        ).show()
                         if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                             !permissionGranted
                         ) {
@@ -206,20 +194,62 @@ fun SettingsPage(
                         }
                     },
                 )
-                ArrowPreference(
-                    title = "通知权限",
-                    summary = if (permissionGranted) "已允许" else "未允许，点击请求",
-                    onClick = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !permissionGranted) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                SwitchPreference(
+                    title = "自动记账（微信 / 支付宝）",
+                    summary = if (notificationAccessGranted) {
+                        "读取支付通知自动生成账单 · 通知使用权已授权"
+                    } else {
+                        "读取支付通知自动生成账单，开启后请允许「通知使用权」"
+                    },
+                    checked = state.settings.autoBookkeeping,
+                    startAction = {
+                        Icon(
+                            Icons.Rounded.AccountBalanceWallet,
+                            contentDescription = null,
+                            tint = colorScheme.primary,
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(22.dp),
+                        )
+                    },
+                    onCheckedChange = { enabled ->
+                        BalanceBookRepository.updateSettings { it.copy(autoBookkeeping = enabled) }
+                        if (enabled) {
+                            if (!notificationAccessGranted) {
+                                Toast.makeText(
+                                    context,
+                                    "请在系统设置中允许「余额簿」的通知使用权",
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                                NotificationAccess.openSettings(context)
+                            }
                         } else {
-                            Toast.makeText(
-                                context,
-                                if (permissionGranted) "通知权限已开启" else "请在系统设置中允许通知",
-                                Toast.LENGTH_SHORT,
-                            ).show()
+                            Toast.makeText(context, "已关闭自动记账", Toast.LENGTH_SHORT).show()
                         }
                     },
+                )
+                SwitchPreference(
+                    title = "记账后提醒",
+                    summary = "自动记账成功时发一条静默通知，点击查看账单",
+                    checked = state.settings.autoBookNotify,
+                    onCheckedChange = { enabled ->
+                        BalanceBookRepository.updateSettings { it.copy(autoBookNotify = enabled) }
+                    },
+                )
+                val autoCount = state.transactions.count { it.source.isAuto }
+                if (autoCount > 0) {
+                    InfoRow("已自动记账", "$autoCount 笔")
+                }
+                Text(
+                    text = "自动记账只读取通知标题与正文，数据仍只保存在本机；微信 / 支付宝通知需包含金额，营销、待支付、聊天消息会被忽略。建议在系统设置中允许自启动并取消省电限制，避免后台通知被清理。",
+                    fontSize = 12.sp,
+                    color = colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
         }
@@ -319,32 +349,6 @@ fun SettingsPage(
         }
     }
 
-    if (showBudgetDialog) {
-        AmountInputDialog(
-            title = "每月可用额度",
-            show = true,
-            initialText = Money.centsToInput(state.settings.monthlyBudgetCents),
-            allowZero = false,
-            onDismiss = { showBudgetDialog = false },
-            onConfirm = { cents ->
-                BalanceBookRepository.updateSettings { it.copy(monthlyBudgetCents = cents) }
-                showBudgetDialog = false
-            },
-        )
-    }
-    if (showOpeningDialog) {
-        AmountInputDialog(
-            title = "初始余额",
-            show = true,
-            initialText = Money.centsToInput(state.settings.openingBalanceCents),
-            allowZero = true,
-            onDismiss = { showOpeningDialog = false },
-            onConfirm = { cents ->
-                BalanceBookRepository.updateSettings { it.copy(openingBalanceCents = cents) }
-                showOpeningDialog = false
-            },
-        )
-    }
 }
 
 

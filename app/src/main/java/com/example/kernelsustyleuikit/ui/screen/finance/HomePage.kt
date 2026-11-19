@@ -54,7 +54,7 @@ fun HomePage(
     onOpenLoans: () -> Unit,
     onAddTransaction: () -> Unit,
     onAddLoan: () -> Unit,
-    onEditBudget: () -> Unit,
+    onOpenLimits: () -> Unit,
     onOpenLoanDetail: (String) -> Unit,
 ) {
     val month = YearMonth.from(today)
@@ -82,7 +82,7 @@ fun HomePage(
         extraBottomPadding = bottomInnerPadding + 16.dp,
     ) {
         item {
-            BalanceHeroCard(balance, monthBalance, summary.totalOutstandingCents)
+            BalanceHeroCard(balance, monthBalance, summary.totalOutstandingCents, onOpenLimits)
         }
 
         item {
@@ -100,9 +100,9 @@ fun HomePage(
                     modifier = Modifier.weight(1f),
                 )
                 QuickAction(
-                    title = "调额度",
+                    title = "额度",
                     icon = { Icon(Icons.Rounded.Tune, null, modifier = Modifier.size(20.dp), tint = colorScheme.primary) },
-                    onClick = onEditBudget,
+                    onClick = onOpenLimits,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -140,7 +140,7 @@ fun HomePage(
                 percent = percent,
                 percentLabel = percentText,
                 daysLeft = month.lengthOfMonth() - today.dayOfMonth,
-                onEditBudget = onEditBudget,
+                onEditBudget = onOpenLimits,
             )
         }
 
@@ -284,8 +284,13 @@ fun HomePage(
 }
 
 @Composable
-private fun BalanceHeroCard(balance: Long, monthBalance: Long, outstanding: Long) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun BalanceHeroCard(
+    balance: Long,
+    monthBalance: Long,
+    outstanding: Long,
+    onOpenLimits: () -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth(), onClick = onOpenLimits) {
         Column(modifier = Modifier.padding(18.dp)) {
             Text(text = "总余额", fontSize = 13.sp, color = colorScheme.onSurfaceVariantSummary)
             Text(
@@ -307,6 +312,25 @@ private fun BalanceHeroCard(balance: Long, monthBalance: Long, outstanding: Long
                     value = Money.formatCentsExact(outstanding),
                     color = colorScheme.primary,
                     modifier = Modifier.weight(1f),
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "初始余额 / 每月额度",
+                    fontSize = 12.sp,
+                    color = colorScheme.onSurfaceVariantSummary,
+                )
+                Icon(
+                    Icons.Rounded.ArrowForward,
+                    contentDescription = null,
+                    tint = colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.size(16.dp),
                 )
             }
         }
@@ -556,8 +580,9 @@ fun TransactionRow(transaction: Transaction, onClick: (() -> Unit)? = null) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            val autoSource = if (transaction.source.isAuto) " · ${transaction.source.label}" else ""
             Text(
-                text = "${Money.formatMonthDay(transaction.date)} · ${Categories.label(transaction.category)}",
+                text = "${Money.formatMonthDay(transaction.date)} · ${Categories.label(transaction.category)}$autoSource",
                 fontSize = 11.sp,
                 color = colorScheme.onSurfaceVariantSummary,
             )

@@ -50,6 +50,18 @@
             </intent-filter>
         </receiver>
 
+        <!-- 通知使用权：读取微信 / 支付宝支付通知并自动记账。
+             该服务只能由系统绑定，必须声明 BIND_NOTIFICATION_LISTENER_SERVICE 权限。 -->
+        <service
+            android:name=".notify.PayNotificationListenerService"
+            android:exported="true"
+            android:label="@string/auto_book_service_label"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

@@ -31,6 +31,11 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object ColorPalette : Route
 
+    /** 首页「额度」按钮进入的额度与余额页。 */
+    @Parcelize
+    @Serializable
+    data object Limits : Route
+
     // 保留模板原有路由，供模板自带页面引用。
     @Parcelize
     @Serializable
