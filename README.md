@@ -5,8 +5,9 @@
 Scaffold、TopAppBar、NavigationBar、Card、Dialog、TextField、Switch、Slider 与主题设置页，
 没有复刻旧 App 的自定义 View / BottomNav / GradientCard。
 
-- 包名：`com.example.kernelsustyleuikit`
-- 版本：1.6.1 (157)
+- 包名：`com.dsh.balancebook`（1.6.2 起从 `com.example.kernelsustyleuikit` 迁移）
+- 图标：`ledger-icons/icon-02-blue.svg` 转换的自适应图标（账本 + 金币，含 Android 13 主题图标）
+- 版本：1.6.2 (158)
 - `targetSdk = 36`，`minSdk = 31`，`compileSdk = 37`（Miuix 0.9.4 AAR 要求，targetSdk 仍为 36）
 - 完全离线：APK 中**没有 INTERNET 权限**（依赖库自带的 INTERNET 已用 `tools:node="remove"` 移除），
   无登录、无服务器、无云同步。

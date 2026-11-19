@@ -1,22 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 图标来源：桌面 ledger-icons/icon-02-blue.svg（账本 + 金币），按 512 视口 1:1 转换。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- 钱包主体 -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M30,38 H78 A7,7 0 0 1 85,45 V71 A7,7 0 0 1 78,78 H30 A7,7 0 0 1 23,71 V45 A7,7 0 0 1 30,38 Z" />
-    <!-- 翻盖 / 卡位 -->
-    <path
-        android:fillColor="#2F6BFF"
-        android:pathData="M70,51 H85 V65 H70 A7,7 0 0 1 63,58 A7,7 0 0 1 70,51 Z" />
-    <!-- 硬币 -->
-    <path
-        android:fillColor="#FFD54F"
-        android:pathData="M54,20 A13,13 0 1 0 54,46 A13,13 0 1 0 54,20 Z" />
-    <path
-        android:fillColor="#2F6BFF"
-        android:pathData="M50,26 h8 v3 h-8 z M52,30 h4 v10 h-4 z" />
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <group
+        android:scaleX="0.78"
+        android:scaleY="0.78"
+        android:pivotX="256"
+        android:pivotY="256">
+        <!-- 背景圆 -->
+        <path
+            android:fillColor="#3B79EE"
+            android:pathData="M256,80 A172,172 0 1 0 256,424 A172,172 0 1 0 256,80 Z" />
+        <group
+            android:pivotX="256"
+            android:pivotY="256"
+            android:rotation="-6">
+            <!-- 内页 -->
+            <path
+                android:fillColor="#FBF6E8"
+                android:pathData="M194,142 H344 A18,18 0 0 1 362,160 V362 A18,18 0 0 1 344,380 H194 A18,18 0 0 1 176,362 V160 A18,18 0 0 1 194,142 Z" />
+            <!-- 笔杆 -->
+            <group
+                android:pivotX="391"
+                android:pivotY="258"
+                android:rotation="14">
+                <path
+                    android:fillColor="#FBF6E8"
+                    android:pathData="M376,163 A15,15 0 0 1 406,163 V305 A15,15 0 0 1 376,305 Z" />
+                <path
+                    android:fillColor="#F5B23D"
+                    android:pathData="M376,163 A15,15 0 0 1 406,163 L406,184 L376,184 Z" />
+                <path
+                    android:fillColor="#F5B23D"
+                    android:pathData="M384,300 H398 A8,8 0 0 1 406,308 A8,8 0 0 1 398,316 H384 A8,8 0 0 1 376,308 A8,8 0 0 1 384,300 Z" />
+                <path
+                    android:fillColor="#F5B23D"
+                    android:pathData="M379,316 L403,316 L391,368 Z" />
+                <path
+                    android:fillColor="#00000000"
+                    android:strokeColor="#E09A22"
+                    android:strokeWidth="3"
+                    android:pathData="M391,316 L391,348" />
+                <path
+                    android:fillColor="#E8DFC9"
+                    android:pathData="M404,199 A3,3 0 0 1 410,199 V227 A3,3 0 0 1 404,227 Z" />
+            </group>
+            <!-- 封面 -->
+            <path
+                android:fillColor="#1B47C4"
+                android:pathData="M178,132 H328 A18,18 0 0 1 346,150 V352 A18,18 0 0 1 328,370 H178 A18,18 0 0 1 160,352 V150 A18,18 0 0 1 178,132 Z" />
+            <!-- 书脊 -->
+            <path
+                android:fillColor="#163AA6"
+                android:pathData="M182,132 H178 A18,18 0 0 0 160,150 V352 A18,18 0 0 0 178,370 H182 Z" />
+            <!-- 书签带 -->
+            <path
+                android:fillColor="#F5B23D"
+                android:pathData="M292,132 H320 V244 L306,230 L292,244 Z" />
+            <!-- 标签 -->
+            <path
+                android:fillColor="#FBF6E8"
+                android:pathData="M210,186 H302 A10,10 0 0 1 312,196 V232 A10,10 0 0 1 302,242 H210 A10,10 0 0 1 200,232 V196 A10,10 0 0 1 210,186 Z" />
+            <path
+                android:fillColor="#2F6BE0"
+                android:fillAlpha="0.55"
+                android:pathData="M218,204 H294 A4,4 0 0 1 294,212 H218 A4,4 0 0 1 218,204 Z" />
+            <path
+                android:fillColor="#2F6BE0"
+                android:fillAlpha="0.35"
+                android:pathData="M218,222 H264 A4,4 0 0 1 264,230 H218 A4,4 0 0 1 218,222 Z" />
+            <!-- 书脊细节 -->
+            <path
+                android:fillColor="#3D6FE0"
+                android:fillAlpha="0.7"
+                android:pathData="M168,199 A3,3 0 0 1 174,199 V227 A3,3 0 0 1 168,227 Z" />
+            <path
+                android:fillColor="#3D6FE0"
+                android:fillAlpha="0.7"
+                android:pathData="M168,249 A3,3 0 0 1 174,249 V277 A3,3 0 0 1 168,277 Z" />
+            <path
+                android:fillColor="#3D6FE0"
+                android:fillAlpha="0.7"
+                android:pathData="M168,299 A3,3 0 0 1 174,299 V327 A3,3 0 0 1 168,327 Z" />
+        </group>
+        <!-- 金币 -->
+        <path
+            android:fillColor="#F5B23D"
+            android:pathData="M118,338 A48,48 0 1 0 118,434 A48,48 0 1 0 118,338 Z" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E09A22"
+            android:strokeWidth="9"
+            android:pathData="M118,352 A34,34 0 1 0 118,420 A34,34 0 1 0 118,352 Z" />
+        <path
+            android:fillColor="#E09A22"
+            android:pathData="M113,371 A5,5 0 0 1 123,371 V401 A5,5 0 0 1 113,401 Z" />
+        <path
+            android:fillColor="#E09A22"
+            android:pathData="M105.5,374 H130.5 A3.5,3.5 0 0 1 130.5,381 H105.5 A3.5,3.5 0 0 1 105.5,374 Z" />
+        <path
+            android:fillColor="#E09A22"
+            android:pathData="M105.5,391 H130.5 A3.5,3.5 0 0 1 130.5,398 H105.5 A3.5,3.5 0 0 1 105.5,391 Z" />
+    </group>
 </vector>

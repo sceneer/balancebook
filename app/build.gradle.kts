@@ -26,7 +26,7 @@ apksign {
 }
 
 android {
-    namespace = "com.example.kernelsustyleuikit"
+    namespace = "com.dsh.balancebook"
     val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
 
     buildTypes {
@@ -74,7 +74,7 @@ android {
     buildToolsVersion = androidBuildToolsVersion
 
     defaultConfig {
-        applicationId = "com.example.kernelsustyleuikit"
+        applicationId = "com.dsh.balancebook"
         minSdk = androidMinSdkVersion
         targetSdk = androidTargetSdkVersion
         versionCode = managerVersionCode

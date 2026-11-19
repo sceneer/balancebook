@@ -1,7 +1,7 @@
 # 交接说明（给下一个 AI 开发者）
 
 > 项目：**余额簿 BalanceBook** —— 基于 KernelSU-Style-UI-Kit 的离线记账 + 借款管理 Android App。
-> 当前版本：**1.6.1 (versionCode 157)**。本文件描述现状、构建方式、关键设计、已知坑与建议下一步。
+> 当前版本：**1.6.2 (versionCode 158)**。本文件描述现状、构建方式、关键设计、已知坑与建议下一步。
 
 ---
 
@@ -10,7 +10,8 @@
 - 源码根目录：仓库根（本文件所在目录）。
 - 技术栈：Kotlin 2.4.20 / Jetpack Compose（BOM 2026.09.00）/ Miuix 0.9.4 / AGP 9.4.1 / Gradle 9.7.1。
 - `compileSdk = 37`（Miuix 0.9.4 的 AAR 元数据强制要求），`targetSdk = 36`，`minSdk = 31`。
-- 包名：`com.example.kernelsustyleuikit`，应用名：余额簿。
+- 包名：`com.dsh.balancebook`（1.6.2 起由 `com.example.kernelsustyleuikit` 迁移），应用名：余额簿。
+- 图标：由 `ledger-icons/icon-02-blue.svg` 转成的自适应图标（前景矢量 + 主题单色图标）。
 
 ### 环境（原开发机）
 
@@ -179,7 +180,7 @@ app/src/main/java/com/example/kernelsustyleuikit/
 
 - 本仓库（含 git 历史，tag `v1.5.5`）。
 - 源码压缩包：`余额簿-源码-1.5.5.zip`（`git archive` 导出，不含 `.git`、`build/`、`local.properties`）。
-- 可安装 APK：`余额簿-1.6.1.apk`（release，debug 签名）。
+- 可安装 APK：`余额簿-1.6.2.apk`（release，debug 签名）。
 - 详细需求文档：仓库内 `README.md`；本文件 `HANDOFF.md`。
 
 接手时建议顺序：`README.md` → `HANDOFF.md` → `finance/LoanCalculator.kt` 与 `BalanceBookCodec.kt`
