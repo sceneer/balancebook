@@ -1,7 +1,7 @@
 # 交接说明（给下一个 AI 开发者）
 
 > 项目：**余额簿 BalanceBook** —— 基于 KernelSU-Style-UI-Kit 的离线记账 + 借款管理 Android App。
-> 当前版本：**1.6.2 (versionCode 158)**。本文件描述现状、构建方式、关键设计、已知坑与建议下一步。
+> 当前版本：**1.6.4 (versionCode 160)**。本文件描述现状、构建方式、关键设计、已知坑与建议下一步。
 
 ---
 
@@ -180,7 +180,7 @@ app/src/main/java/com/example/kernelsustyleuikit/
 
 - 本仓库（含 git 历史，tag `v1.5.5`）。
 - 源码压缩包：`余额簿-源码-1.5.5.zip`（`git archive` 导出，不含 `.git`、`build/`、`local.properties`）。
-- 可安装 APK：`余额簿-1.6.2.apk`（release，debug 签名）。
+- 可安装 APK：`余额簿-1.6.4.apk`（release，debug 签名）。
 - 详细需求文档：仓库内 `README.md`；本文件 `HANDOFF.md`。
 
 接手时建议顺序：`README.md` → `HANDOFF.md` → `finance/LoanCalculator.kt` 与 `BalanceBookCodec.kt`

@@ -7,7 +7,7 @@ Scaffold、TopAppBar、NavigationBar、Card、Dialog、TextField、Switch、Slid
 
 - 包名：`com.dsh.balancebook`（1.6.2 起从 `com.example.kernelsustyleuikit` 迁移）
 - 图标：`ledger-icons/icon-02-blue.svg` 转换的自适应图标（账本 + 金币，含 Android 13 主题图标）
-- 版本：1.6.2 (158)
+- 版本：1.6.4 (160)
 - `targetSdk = 36`，`minSdk = 31`，`compileSdk = 37`（Miuix 0.9.4 AAR 要求，targetSdk 仍为 36）
 - 完全离线：APK 中**没有 INTERNET 权限**（依赖库自带的 INTERNET 已用 `tools:node="remove"` 移除），
   无登录、无服务器、无云同步。
@@ -96,7 +96,7 @@ App 会监听微信（`com.tencent.mm`）与支付宝（`com.eg.android.AlipayGp
     收入按工资 / 奖金 / 理财收益 / 其他收入。
 - **去重**：同一来源 + 方向 + 金额 + 3 分钟窗口生成稳定 `dedupeKey`，
   交易 id = `auto-<来源>-<sha1(dedupeKey)>`；微信服务号与聊天两条重复通知只会记一笔。
-- **自动记账通知**：记账成功会发一条静默通知（点击跳转到「账单」页）；该设置行及其解释已移除，通知保持默认开启。
+- **记账后提醒**：可开关；开启时自动记账成功会发一条静默通知（点击跳转到「账单」页）。
 - **隐私**：只读取通知的标题与正文，不读取聊天内容、不联网；数据仍只写入本机 JSON。
 - JSON 新增字段（向后兼容，仍为 version 2）：
   `transactions[].source`（manual / wechat / alipay）、`transactions[].autoKey`、
@@ -107,7 +107,8 @@ App 会监听微信（`com.tencent.mm`）与支付宝（`com.eg.android.AlipayGp
 - 设置页删掉「通知权限」「通知使用权」两个点击项：打开「借款到期提醒 / 自动记账」开关时，
   自动申请通知权限或跳转系统「通知使用权」页。
 - 首页只保留「额度」快捷按钮进入额度页（总余额卡片不再重复入口）。
-- 设置页「记账后提醒」开关和解释已删除，自动记账通知保持默认开启。
+- 设置页自动记账卡片删除了三行小字说明，并保留「记账后提醒」开关。
+- 修正数据区「导出 / 导入 JSON 备份」图标方向：导出用上传图标、导入用下载图标。
 - 借款新增两个主开关：
   - **计算利息**：关闭后按无息借款处理（利息 0、本金均摊），编辑页隐藏计息方式/利率/固定利息，
     详情/列表也不再显示年利率与利息信息。

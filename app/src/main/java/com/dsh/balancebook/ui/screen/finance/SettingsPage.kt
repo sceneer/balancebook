@@ -233,16 +233,18 @@ fun SettingsPage(
                         }
                     },
                 )
+                SwitchPreference(
+                    title = "记账后提醒",
+                    summary = "自动记账成功时发一条静默通知，点击查看账单",
+                    checked = state.settings.autoBookNotify,
+                    onCheckedChange = { enabled ->
+                        BalanceBookRepository.updateSettings { it.copy(autoBookNotify = enabled) }
+                    },
+                )
                 val autoCount = state.transactions.count { it.source.isAuto }
                 if (autoCount > 0) {
                     InfoRow("已自动记账", "$autoCount 笔")
                 }
-                Text(
-                    text = "自动记账只读取通知标题与正文，数据仍只保存在本机；微信 / 支付宝通知需包含金额，营销、待支付、聊天消息会被忽略。建议在系统设置中允许自启动并取消省电限制，避免后台通知被清理。",
-                    fontSize = 12.sp,
-                    color = colorScheme.onSurfaceVariantSummary,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
             }
         }
 
@@ -253,7 +255,7 @@ fun SettingsPage(
                     summary = "导出为 version ${com.dsh.balancebook.finance.BalanceBookCodec.CURRENT_VERSION} 本地文件",
                     startAction = {
                         Icon(
-                            Icons.Rounded.Download,
+                            Icons.Rounded.Upload,
                             contentDescription = null,
                             tint = colorScheme.primary,
                             modifier = Modifier
@@ -270,7 +272,7 @@ fun SettingsPage(
                     summary = "支持 version 1（按月旧版）与 version 2",
                     startAction = {
                         Icon(
-                            Icons.Rounded.Upload,
+                            Icons.Rounded.Download,
                             contentDescription = null,
                             tint = colorScheme.primary,
                             modifier = Modifier
