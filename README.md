@@ -1,5 +1,7 @@
 # 余额簿 BalanceBook（KernelSU-Style-UI-Kit 版）
 
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
 离线记账 + 借款管理 Android App。UI 完全基于
 [KernelSU-Style-UI-Kit](https://github.com/chenaizhang/KernelSU-Style-UI-Kit) 的 Miuix 主题、
 Scaffold、TopAppBar、NavigationBar、Card、Dialog、TextField、Switch、Slider 与主题设置页，
