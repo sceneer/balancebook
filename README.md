@@ -5,6 +5,8 @@
 Scaffold、TopAppBar、NavigationBar、Card、Dialog、TextField、Switch、Slider 与主题设置页，
 没有复刻旧 App 的自定义 View / BottomNav / GradientCard。
 
+> **生成声明**：本项目（代码、UI、文档）全部由「大肥鱼」生成。
+
 - 包名：`com.dsh.balancebook`（1.6.2 起从 `com.example.kernelsustyleuikit` 迁移）
 - 图标：`ledger-icons/icon-02-blue.svg` 转换的自适应图标（账本 + 金币，含 Android 13 主题图标）
 - 版本：1.6.4 (160)
@@ -224,3 +226,16 @@ release 暂未开启 R8（`isMinifyEnabled = false`），避免裁剪 `kotlinx.s
   - `loans[].reminderEnabled`
   - `payments[].id`、`payments[].note`；`payments[].period = 0` 表示自由还款。
 - 新增单测：部分还款、多还结清、关闭提醒后不判逾期、多笔自由还款 JSON 往返（共 86 个测试）。
+
+## 开源协议
+
+本项目采用 [CC BY-NC-SA 4.0（署名-非商业性使用-相同方式共享 4.0 国际）](https://creativecommons.org/licenses/by-nc-sa/4.0/) 协议：
+
+- ✅ 可以自由查看、修改、二次分发本项目；
+- ✅ 修改后的作品必须以**相同协议**开源，并保留作者署名（大肥鱼）；
+- ✅ 使用时需注明来源与协议；
+- ❌ **不得用于商业用途**（包括但不限于售卖、付费分发、商业产品集成）；
+  如需商用，请先联系作者获得单独授权。
+
+> 说明：模板 KernelSU-Style-UI-Kit 及第三方依赖仍遵循其各自原始协议，
+> 本协议适用于本项目新增的代码、UI 与文档内容。
